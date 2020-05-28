@@ -1,7 +1,7 @@
 .data
 	fin: .asciiz "D:/nguoichoi.txt"
 	ins: .asciiz "\n "
-	list: .space 1024
+	list: .space 1000
 	Score: .word 20
 	GetScore: .space 100
 	Stt: .word 20
