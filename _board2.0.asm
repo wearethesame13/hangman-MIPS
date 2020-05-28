@@ -1,13 +1,14 @@
 .data
 	fin: .asciiz "D:/nguoichoi.txt"
+	ins: .asciiz "\n "
 	list: .space 1024
 	Score: .word 20
 	GetScore: .space 100
 	Stt: .word 20
 	soNguoiChoi: .word 0
 	infoPlayer: .space 20
-	ins: .asciiz "\n "
-	say: .asciiz " success? "
+	
+	
 .text
 	#openfile
 	li $v0,13
@@ -202,12 +203,91 @@ ConvertStrToInt:		#Chuyen ky tu thanh so :
 	sw $a0,($sp)
 	sw $a1,4($sp)
 	sw $ra,8($sp)
-	move $s0,$a0
-	move $s1,$a1
-	li $s1,10
-	mult $s0,$s1
-	mflo $s0
-	add $v0,$s0,$s1
+	
+	beq $a0,'1',chuc1
+	beq $a0,'2',chuc2
+	beq $a0,'3',chuc3
+	beq $a0,'4',chuc4
+	beq $a0,'5',chuc5
+	beq $a0,'6',chuc6
+	beq $a0,'7',chuc7
+	beq $a0,'8',chuc8
+	beq $a0,'9',chuc9
+
+chuc1:
+	li $s0,1
+	j donvi
+chuc2:
+	li $s0,2
+	j donvi
+chuc3:
+	li $s0,3
+	j donvi
+chuc4:
+	li $s0,4
+	j donvi
+chuc5:
+	li $s0,5
+	j donvi
+chuc6:
+	li $s0,6
+	j donvi
+chuc7:
+	li $s0,7
+	j donvi
+chuc8:
+	li $s0,8
+	j donvi
+chuc9:
+	li $s0,9
+	j donvi
+donvi:
+	beq $a1,'0',dv0
+	beq $a1,'1',dv1
+	beq $a1,'2',dv2
+	beq $a1,'3',dv3
+	beq $a1,'4',dv4
+	beq $a1,'5',dv5
+	beq $a1,'6',dv6
+	beq $a1,'7',dv7
+	beq $a1,'8',dv8	
+	beq $a1,'9',dv9
+
+dv0:
+	li $s1,0
+	j convertx
+dv1:
+	li $s1,1
+	j convertx
+dv2:
+	li $s1,2
+	j convertx
+dv3:
+	li $s1,3
+	j convertx
+dv4:
+	li $s1,4
+	j convertx
+dv5:
+	li $s1,5
+	j convertx
+dv6:
+	li $s1,6
+	j convertx
+dv7:
+	li $s1,7
+	j convertx
+dv8:
+	li $s1,8
+	j convertx
+dv9:
+	li $s1,9
+	j convertx
+convertx:
+	li $s2,10
+	mult $s0,$s2
+	mflo $s3
+	add $v0,$s3,$s1
 	
 	lw $a0,($sp)
 	lw $a1,4($sp)
