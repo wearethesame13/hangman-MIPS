@@ -1,14 +1,21 @@
 .data
+	# Bien mac dinh
 	name: .space 11
-	fileName: .asciiz"nguoichoi.txt"
+	point: .word 0
+	nWin: .word 0
+	
+	# Thong bao de test ket qua
 	tb1: .asciiz"Nhap ten nguoi choi: "
 	tb2: .asciiz"\nNhap diem: "
 	tb3: .asciiz"\nNhap lan thang: "
+	
+	# Bien dat them
+	
+	fileName: .asciiz"nguoichoi.txt"
 	lenName: .word 0
 	lenPoint: .word 0
 	lennWin: .word 0
-	point: .word 0
-	nWin: .word 0
+	
 .text
 	# Xuat tb1
 	li $v0, 4

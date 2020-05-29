@@ -38,7 +38,8 @@ _endPoint:
 	# In So luot thang
 	li $v0, 1
 	lw $a0, nWin
-	syscall	
+	syscall
+
 	
 _continue:
 	# Thong bao choi lai
