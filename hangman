@@ -1,7 +1,6 @@
 .data
 fileIn: .asciiz "tudien.txt"      # filename for input
-numberOfWords: .word 0
-buffer: .space 100000
+buffer: .space 10000
 tb1: .asciiz "Nhap ten nguoi choi: "
 name: .space 100
 curW: .space 20
@@ -18,13 +17,69 @@ state6: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|    / \\\n|\n|\n|\n"
 randNum: .word 0
 underScore: .asciiz "_"
 .text
+_randWord: 
+	#lay de trong file tudien.txt
+	#open a file for writing
+	li   $v0, 13       # system call for open file
+	la   $a0, fin      # board file name
+	li   $a1, 0        # Open for reading
+	li   $a2, 0
+	syscall            # open a file (file descriptor returned in $v0)
+	move $s6, $v0      # save the file descriptor
 
-_randNumber: # luu o a0
-	lw $a1, numberOfWords
+	#read from file
+	li   $v0, 14       # system call for read from file
+	move $a0, $s6      # file descriptor
+	la   $a1, buffer   # address of buffer to which to read
+	li   $a2, 10000    # hardcoded buffer length
+	syscall            # read from file
+
+	# Close the file
+	li   $v0, 16       # system call for close file
+	move $a0, $s6      # file descriptor to close
+	syscall            # close file
+
+	la $a1,nW
+	la $a2, curW	
+	la $a3, buffer
+	
+
+	lw $a1, 10000
     	li $v0, 42  
     	syscall
     	add $a0, $a0, 0
-	jr $ra
+
+	li $a1, 0
+	li $t0, 0
+	move $s0, $a0 #nW
+	move $s1, $a1 #curW
+	li $s2, '*'
+	move $s3, $a3 #buffer
+	
+_randWord.FindStartPoint.Loop:	
+	beq $t0, $a0, _randWord.FindStartPoint.Return
+	addi $t0, $t0, 1
+	addi $s3, $s3, 1 
+	j _randWord.FindStartPoint.Loop
+_randWord.FindStartPoint.Return: 
+	
+_randWord.FindFirstWord.Loop:
+	lb $t1, ($s3)
+	addi $s3, $s3, 1
+	beq $t1, $s2, _randWord.FindFirstWord.Return
+	j _randWord.FindFirstWord.Loop
+_randWord.FindFirstWord.Return:
+	
+_randWord.FindCurrentWord.Loop:
+	lb $t1, ($s3)
+	addi $s3, $s3, 1
+	beq $t1, $s2, _randWord.FindCurrentWord.Return
+	sb $t1, ($s1)
+	addi $s1, $s1, 1
+	addi $s0, $s0, 1
+	j _randWord.FindCurrentWord.Loop
+_randWord.FindCurrentWord.Return:
+
 _printWord:
 
 	la $a0,nW
@@ -41,10 +96,11 @@ _printWord:
 	move $s0,$a0 #nW
 	move $s1,$a1 #arrW
 	move $s2, $a2 #curW
+
 	
 _printWord.Loop:
-	beq $a1, 0, _printWord.Loop.printUnderScore
-	beq $a1, 1, _printWord.Loop.printCharacter
+	beq $a1, '0', _printWord.Loop.printUnderScore
+	beq $a1, '1', _printWord.Loop.printCharacter
 _printWord.Loop.printUnderScore: 
 	li $v0, 4
 	la $a0, underScore
