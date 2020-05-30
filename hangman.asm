@@ -1,22 +1,31 @@
 .data
-fileIn: .asciiz "tudien.txt"      # filename for input
-buffer: .space 10000
-tb1: .asciiz "Nhap ten nguoi choi: "
-name: .space 100
-curW: .space 20
-nW: .word 0
-arrW: .space 20 
-state: .word 0 
-state0: .asciiz "\n ______\n|     |\n|\n|\n|\n|\n"  
-state1: .asciiz "\n ______\n|     |\n|     0\n|\n|\n|\n"
-state2: .asciiz "\n ______\n|     |\n|     0\n|     |\n|\n|\n"
-state3: .asciiz "\n ______\n|     |\n|     0\n|    /|\n|\n"
-state4: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|\n|\n"
-state5: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|    /\n|\n|\n|\n"
-state6: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|    / \\\n|\n|\n|\n"
-randNum: .word 0
-underScore: .asciiz "_"
+	fileIn: .asciiz "tudien.txt"      # filename for input
+	buffer: .space 10000
+	tb1: .asciiz "Nhap ten nguoi choi: "
+	name: .space 100
+	curW: .space 20
+	nW: .word 0
+	arrW: .space 20 
+	state: .word 0 
+	state0: .asciiz "\n ______\n|     |\n|\n|\n|\n|\n"  
+	state1: .asciiz "\n ______\n|     |\n|     0\n|\n|\n|\n"
+	state2: .asciiz "\n ______\n|     |\n|     0\n|     |\n|\n|\n"
+	state3: .asciiz "\n ______\n|     |\n|     0\n|    /|\n|\n"
+	state4: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|\n|\n"
+	state5: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|    /\n|\n|\n|\n"
+	state6: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|    / \\\n|\n|\n|\n"
+	randNum: .word 0
+	underScore: .asciiz "_"
 .text
+	jal _randWord
+	li $v0,4
+	la $a0,curW
+	syscall
+	
+	li $v0,10 #end program
+	syscall
+	
+	
 _randWord: 
 	#lay de trong file tudien.txt
 	#open a file for writing
