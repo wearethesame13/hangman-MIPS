@@ -1,145 +1,114 @@
 .data
-fileIn: .asciiz "tudien.txt"      # filename for input
-numberOfWords: .word 0
-buffer: .space 100000
-tb1: .asciiz "Nhap ten nguoi choi: "
-name: .space 100
-curW: .space 20
-nW: .word 0
-arrW: .space 20 
-state: .word 0 
-state0: .asciiz "\n ______\n|     |\n|\n|\n|\n|\n"  
-state1: .asciiz "\n ______\n|     |\n|     0\n|\n|\n|\n"
-state2: .asciiz "\n ______\n|     |\n|     0\n|     |\n|\n|\n"
-state3: .asciiz "\n ______\n|     |\n|     0\n|    /|\n|\n"
-state4: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|\n|\n"
-state5: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|    /\n|\n|\n|\n"
-state6: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|    / \\\n|\n|\n|\n"
-randNum: .word 0
-underScore: .asciiz "_"
+	curW: .space 20
+	arrW: .space 20
+	nW: .word 0
+	point: .word 0
+	state: .word 0
+	tbG: .asciiz "Nhap ki tu: "
+	tbThang: .asciiz "Ban da chien thang"
+	tbThua: .asciiz "Ban da thua"
 .text
+	
 
-_randNumber: # luu o a0
-	lw $a1, numberOfWords
-    	li $v0, 42  
-    	syscall
-    	add $a0, $a0, 0
+_ktArrW: #KT arrW co bat het
+	#stack
+	subi $sp,$sp,24
+	sw $ra,0($sp)
+	sw $t0,4($sp)
+	sw $t1,8($sp)
+	sw $t2,12($sp)
+	sw $t3,16($sp)
+	sw $s0,20($sp)
+	
+	la $t0,arrW
+	lw $s0,nW
+	li $t1,0
+	li $t2,1
+	_ktArrW.loop:
+	bge $t1,$s0,_ktArrW.fin
+		lb $t3,($t0)
+		bne $t3,'0',_ktArrW.Con
+			li $t2,0
+		_ktArrW.Con:
+		addi $t0,$t0,1
+		addi $t1,$t1,1
+	_ktArrW.fin:
+	beq $t2,0,_ktArrW.con2
+		li $v0,1
+	_ktArrW.con2:
+	li $v0,0
+	
+	#unstack
+	lw $ra,0($sp)
+	lw $t0,4($sp)
+	lw $t1,8($sp)
+	lw $t2,12($sp)
+	lw $t3,16($sp)
+	lw $s0,20($sp)
+	addi $sp,$sp,24
 	jr $ra
-_printWord:
-
-	la $a0,nW
-	la $a1,arrW
-	la $a2, curW
-	addi $sp,$sp,16
+	
+_guessC:
+	#stack
+	subi $sp,$sp,28
 	sw $ra,($sp)
 	sw $s0,4($sp)
-	sw $s1,8($sp)
-	sw $s2, 12($a2)
-	sw $t0,16($sp) 
-
-	li $t0,0 # i = 0
-	move $s0,$a0 #nW
-	move $s1,$a1 #arrW
-	move $s2, $a2 #curW
+	sw $t0,8($sp)
+	sw $t1,12($sp)
+	sw $t2,16($sp)
+	sw $t3,20($sp)
+	sw $t4,24($sp)
 	
-_printWord.Loop:
-	beq $a1, 0, _printWord.Loop.printUnderScore
-	beq $a1, 1, _printWord.Loop.printCharacter
-_printWord.Loop.printUnderScore: 
-	li $v0, 4
-	la $a0, underScore
+	la $t0,curW #tu 
+	la $t1,arrW
+	lw $s0,nW #so luong ki tu
+	jal _ktArrW
+	_guessC.Loop
+	beq $v0,1,_guessC.Win
+	lw $t3,state
+	bge $t3,7,_guessC.Lose
+	li $v0,4 #Thong bao doan
+	la $a0,tbG
 	syscall
-	j _GoBack
-_printWord.Loop.printCharacter:
-	li $v0, 4
-	la $a0, ($s2)
+	li $v0,12 #Doc ki tu
 	syscall
-	j _GoBack
-_GoBack:
-	addi $t0,$t0,1	
-	addi $s1,$s1,4
-	addi $s2,$s2,4
-	blt $t0,$s0, _printWord.Loop
-
+	move $t4,$v0
+	li $t2,0
+	_guessC.loop2:
+	bge $t2,$s0,_guessC.fin2
+		lb $t3,($t0) #doc ki tu tu mang
+		bne $t4,$t3,_guessC.iCon #kiem tra
+			li $t4,'1'
+			sw $t4,($t1) #neu bang thi luu xuong arrW 1
+		_guessC.iCon:
+		addi $t0,$t0,1
+		addi $t1,$t1,1
+		addi $t2,$t2,1
+	j _guessC.loop2
+	_guessC.fin2:
+	jal _printMan #In ra trang thai
+	jal _printWord #In ra tu
+	j _guessC.Loop:
+	_guessC.Win:
+	li $v0,4
+	la $a0,tbThang
+	syscall
+	li $v0,1
+	j _guessC.end
+	_guessC.Lose:
+	li $v0,4
+	la $a0,tbThua
+	syscall
+	li $v0,0
+	_guessC.end:
+	
+	#unstack
 	lw $ra,($sp)
 	lw $s0,4($sp)
-	lw $s1,8($sp)
-	lw $t0,12($sp)
-	lw $t1,16($sp)
-	
-	#xoa stack
-	addi $sp,$sp,32
-	# tra ve
+	lw $t0,8($sp)
+	lw $t1,12($sp)
+	lw $t2,16($sp)
+	lw $t3,20($sp)
+	lw $t4,24($sp)
+	addi $sp,$sp,28
 	jr $ra
-	
-_printMan:
-	lw $t1, state
-	beq $t1, 0, _printMan.State0
-	beq $t1, 1, _printMan.State1
-	beq $t1, 2, _printMan.State2
-	beq $t1, 3, _printMan.State3
-	beq $t1, 4, _printMan.State4
-	beq $t1, 5, _printMan.State5
-	beq $t1, 6, _printMan.State6
-	j	_printMan.End
-_printMan.State0:
-	li $v0,4
-	la $a0,state0
-	syscall
-	j _printMan.End
-_printMan.State1:
-	li $v0,4
-	la $a0,state1
-	syscall
-	j _printMan.End
-_printMan.State2:
-	li $v0,4
-	la $a0,state2
-	syscall
-	j _printMan.End
-_printMan.State3:
-	li $v0,4
-	la $a0,state3
-	syscall
-	j _printMan.End
-_printMan.State4:
-	li $v0,4
-	la $a0,state4
-	syscall
-	j _printMan.End
-_printMan.State5:
-	li $v0,4
-	la $a0,state5
-	syscall
-	j _printMan.End
-_printMan.State6:
-	li $v0,4
-	la $a0,state6
-	syscall
-_printMan.End:
-	jr $ra
-_inputName:
-	#xuat thong bao nhap ten nguoi choi
-	li $v0, 4
-	la $a0, tb1
-	syscall
-	
-	#nhap ten nguoi choi
-	li $v0, 8
-	la $a0, name
-	li $a1, 11
-	syscall
-	
-	 li $s0,0               # Set index to 0
-remove:
-    lb $a3,name($s0)      # Load character at index
-    addi $s0,$s0,1        # Increment index
-    bnez $a3,remove    # Loop until the end of string is reached
-    beq $a1,$s0,skip      # Do not remove \n when it isn't present
-    subiu $s0,$s0,2     # Backtrack index to '\n'
-    sb $0, name($s0)        # Add the terminating character in its place
-skip:
-
-	
-	
-
