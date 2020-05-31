@@ -1,6 +1,8 @@
 .data
 fileIn: .asciiz "tudien.txt"      # filename for input
 buffer: .space 10000
+numberOfWord: .word 0
+randNumb: .word 0
 tb1: .asciiz "Nhap ten nguoi choi: "
 name: .space 100
 curW: .space 20
@@ -21,7 +23,7 @@ _randWord:
 	#lay de trong file tudien.txt
 	#open a file for writing
 	li   $v0, 13       # system call for open file
-	la   $a0, fin      # board file name
+	la   $a0, fileIn      # board file name
 	li   $a1, 0        # Open for reading
 	li   $a2, 0
 	syscall            # open a file (file descriptor returned in $v0)
@@ -39,57 +41,126 @@ _randWord:
 	move $a0, $s6      # file descriptor to close
 	syscall            # close file
 
-	la $a1,nW
+	la $a1, nW
+	la $a2, curW	
+	la $a3, buffer
+
+	jal _randWord.FindNumberOfWord
+
+	jal _randWord.FindRandomNumber
+
+	la $a0, randNumb
 	la $a2, curW	
 	la $a3, buffer
 	
 
-	lw $a1, 10000
+	
+	
+_randWord.FindNumberOfWord:
+	
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $t0,8($sp)
+	sw $t1, 12($sp) 
+	sw $t2, 16($sp)
+	sw $t3, 20($sp)
+	
+	move $s0, $a3
+	li $t0, 0 #i = 0
+	lb $t1, '*'
+	lb $t2, '\n'
+
+_randWord.FindNumberOfWord.Loop:
+	lb $t3, ($s0)
+	addi $s0, $s0, 1
+	beq $t3, $t1, _randWord.FindNumberOfWord.Plus
+_randWord.FindNumberOfWord.GoBack:
+	beq $t3, $t2, _randWord.FindNumberOfWord.End
+_randWord.FindNumberOfWord.Plus:
+	addi $t0, $t0, 1
+	j _randWord.FindNumberOfWord.GoBack
+_randWord.FindNumberOfWord.End:
+	sw $t0, numberOfWord	
+
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $t0,8($sp)
+	lw $t1, 12($sp) 
+	lw $t2, 16($sp)
+	lw $t3, 20($sp)
+
+	addi $sp,$sp, 32
+	jr $ra
+
+_randWord.FindRandomNumber:
+	lw $a1, numberOfWord
     	li $v0, 42  
     	syscall
     	add $a0, $a0, 0
+	sw $a0, randNumb
+	jr $ra
+_randWord.FindRandomWord:
 
-	li $a1, 0
-	li $t0, 0
-	move $s0, $a0 #nW
-	move $s1, $a1 #curW
-	li $s2, '*'
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	sw $s0,4($sp)
+	sw $s2,8($sp) 
+	sw $s3,12($sp) 
+	sw $t0,16($sp)
+	sw $t1, 20($sp)
+	sw $t2, 24($sp)
+	sw $t3, 28($sp)
+
+	move $s0, $a0 #randNumb
 	move $s3, $a3 #buffer
-	
-_randWord.FindStartPoint.Loop:	
-	beq $t0, $a0, _randWord.FindStartPoint.Return
-	addi $t0, $t0, 1
-	addi $s3, $s3, 1 
-	j _randWord.FindStartPoint.Loop
-_randWord.FindStartPoint.Return: 
-	
-_randWord.FindFirstWord.Loop:
-	lb $t1, ($s3)
-	addi $s3, $s3, 1
-	beq $t1, $s2, _randWord.FindFirstWord.Return
-	j _randWord.FindFirstWord.Loop
-_randWord.FindFirstWord.Return:
-	
-_randWord.FindCurrentWord.Loop:
-	lb $t1, ($s3)
-	addi $s3, $s3, 1
-	beq $t1, $s2, _randWord.FindCurrentWord.Return
-	sb $t1, ($s1)
-	addi $s1, $s1, 1
-	addi $s0, $s0, 1
-	j _randWord.FindCurrentWord.Loop
-_randWord.FindCurrentWord.Return:
 
+	li $t0, 0	
+	li $t1, '*'
+	li $t2, 0
+_randWord.FindRandomWord.Loop:
+	lb $t3, ($s3)
+	addi $s3, $s3, 1
+	beq $t3, $t1, _randWord.FindRandomWord.Plus
+_randWord.FindRandomWord.GoBack:
+	beq $t3, $s0, _randWord.FindRandomWord.Found
+_randWord.FindRandomWord.Plus:
+	addi $t0, $t0, 1
+	j _randWord.FindRandomWord.GoBack
+_randWord.FindRandomWord.Found:
+	lb $t3, ($s3)
+	sw $t3,($a2)
+	addi $a2, $a2, 1
+	addi $s3, $s3, 1
+	addi $t2, $t2, 1
+	slt $t4, $t3, $t1
+	beq $t4, 1, _randWord.FindRandomWord.Found
+	
+	sw $t2, nW
+	#restore
+	lw $ra,($sp)
+	lw $s0,4($sp)
+	lw $s2,8($sp) 
+	lw $s3,12($sp) 
+	lw $t0,16($sp)
+	lw $t1, 20($sp)
+	lw $t2, 24($sp)
+	lw $t3, 28($sp)
+	 
+	addi $sp,$sp,32
+	jr $ra
+	
 _printWord:
 
 	la $a0,nW
 	la $a1,arrW
 	la $a2, curW
-	addi $sp,$sp,16
+	
+	addi $sp,$sp,-32
 	sw $ra,($sp)
 	sw $s0,4($sp)
 	sw $s1,8($sp)
-	sw $s2, 12($a2)
+	sw $s2, 12($sp)
 	sw $t0,16($sp) 
 
 	li $t0,0 # i = 0
@@ -105,13 +176,13 @@ _printWord.Loop.printUnderScore:
 	li $v0, 4
 	la $a0, underScore
 	syscall
-	j _GoBack
+	j _printWord.Loop.printCharacter.GoBack
 _printWord.Loop.printCharacter:
 	li $v0, 4
 	la $a0, ($s2)
 	syscall
-	j _GoBack
-_GoBack:
+	j _printWord.Loop.printCharacter.GoBack
+_printWord.Loop.printCharacter.GoBack:
 	addi $t0,$t0,1	
 	addi $s1,$s1,4
 	addi $s2,$s2,4
@@ -120,8 +191,8 @@ _GoBack:
 	lw $ra,($sp)
 	lw $s0,4($sp)
 	lw $s1,8($sp)
-	lw $t0,12($sp)
-	lw $t1,16($sp)
+	lw $s2,12($sp)
+	lw $t0,16($sp)
 	
 	#xoa stack
 	addi $sp,$sp,32
@@ -129,6 +200,11 @@ _GoBack:
 	jr $ra
 	
 _printMan:
+	addi $sp,$sp,-32
+
+	sw $ra,($sp)
+	sw $t1,4($sp)
+
 	lw $t1, state
 	beq $t1, 0, _printMan.State0
 	beq $t1, 1, _printMan.State1
@@ -173,7 +249,14 @@ _printMan.State6:
 	la $a0,state6
 	syscall
 _printMan.End:
+	lw $ra,($sp)
+	lw $t1,4($sp)
+	
+	#xoa stack
+	addi $sp,$sp,32
+	# tra ve
 	jr $ra
+
 _inputName:
 	#xuat thong bao nhap ten nguoi choi
 	li $v0, 4
@@ -185,8 +268,9 @@ _inputName:
 	la $a0, name
 	li $a1, 11
 	syscall
-	
-	 li $s0,0               # Set index to 0
+
+	#remove \n
+	li $s0,0               # Set index to 0
 remove:
     lb $a3,name($s0)      # Load character at index
     addi $s0,$s0,1        # Increment index
@@ -195,6 +279,7 @@ remove:
     subiu $s0,$s0,2     # Backtrack index to '\n'
     sb $0, name($s0)        # Add the terminating character in its place
 skip:
+	
 
 	
 	
