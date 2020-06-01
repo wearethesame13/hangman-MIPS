@@ -448,23 +448,25 @@ skip:
 	jr $ra
 
 _mode:
-	    #goi _randWord
-	jal _randWord
     la $a0,nhapmode
     li $v0,4
     syscall
-
+	
+	
+	
 	li $v0, 12
 	syscall
 	lb $t1, modeword
 	beq $v0, $t1, _Func_guessW
-	bne $v0, $t1, _guessC
-	
+	beq $v0, 'c', _Func_guessC
+
 
 _mode.exit:
 	li      $v0,10
 	syscall
 _Func_guessW:
+	#goi _randWord
+	jal _randWord
 	jal _guessW
 	beq $v0,0, _mode.exit
 	
@@ -476,17 +478,32 @@ _Func_guessW:
     li $t0, 'y'
 	li $v0, 12
 	syscall
-	beq $t0, $v0, _mode
+	beq $t0, $v0, _Func_guessW
 	j _mode.exit
+
+_Func_guessC:
+	jal _guessC
+	beq $v0,0, _mode.exit
+	
+	
+	
+	la      $a0,tbtt
+    li      $v0,4
+    syscall
+    li $t0, 'y'
+	li $v0, 12
+	syscall
+	beq $t0, $v0, _Func_guessC
+	j _mode.exit
+
+
 _guessW:
 	addi $sp, $sp, -4
 	sw $ra,($sp)
 	
 	
     # get first string
-    la      $s2,str1
-    move    $t2,$s2
-    jal     getstr
+    la      $s2,uGuess
 
     # get second string
     la      $s3,str2
