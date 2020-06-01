@@ -62,6 +62,7 @@ main:
 	jal _inputName
 	jal _mode
 	
+	
 	li $v0,10
 	syscall
 
@@ -587,19 +588,20 @@ _ktArrW: #KT arrW co bat het
 	lw $s0,nW
 	li $t1,0
 	li $t2,1
-	_ktArrW.loop:
+_ktArrW.loop:
 	bge $t1,$s0,_ktArrW.fin
-		lb $t3,($t0)
-		bne $t3,'0',_ktArrW.Con
-			li $t2,0
-		_ktArrW.Con:
-		addi $t0,$t0,1
-		addi $t1,$t1,1
-	_ktArrW.fin:
+	lb $t3,($t0)
+	bne $t3,'0',_ktArrW.Con
+	li $t2,0
+_ktArrW.Con:
+	addi $t0,$t0,1
+	addi $t1,$t1,1
+	j _ktArrW.loop
+_ktArrW.fin:
 	beq $t2,0,_ktArrW.con2
-		li $v0,1
-		j _ktArrW.end
-	_ktArrW.con2:
+	li $v0,1
+	j _ktArrW.end
+_ktArrW.con2:
 	li $v0,0
 	_ktArrW.end:
 	#unstack
@@ -631,6 +633,9 @@ _guessC:
 	
 	lw $s0,nW #so luong ki tu
 _guessC.Loop:
+	li $v0,4
+	la $a0,arrW
+	syscall
 	lw $a0,nW
 	la $a1,arrW
 	la $a2,curW
@@ -652,40 +657,45 @@ _guessC.Loop:
 	move $t4,$v0
 	li $t2,0
 	li $t5,0
-	_guessC.loop2:
+_guessC.loop2:
 	bge $t2,$s0,_guessC.fin2
-		lb $t3,($t0) #doc ki tu tu mang
-		bne $t4,$t3,_guessC.iCon #kiem tra
-			li $t4,'1'
-			sb $t4,($t1) #neu bang thi luu xuong arrW 1
-			addi $t5,$t5,1
-		_guessC.iCon:
-		addi $t0,$t0,1
-		addi $t1,$t1,1
-		addi $t2,$t2,1
+	lb $t3,($t0) #doc ki tu tu mang
+	bne $v0,$t3,_guessC.iCon #kiem tra
+	li $t4,'1'
+	sb $t4,($t1) #neu bang thi luu xuong arrW 1
+	addi $t5,$t5,1
+_guessC.iCon:
+	addi $t0,$t0,1
+	addi $t1,$t1,1
+	addi $t2,$t2,1
 	j _guessC.loop2
-	_guessC.fin2:
+_guessC.fin2:
 	
 	
 	bnez $t5,_guessC.true
 	lw $t5,state
 	addi $t5,$t5,1
 	sw $t5,state
-	_guessC.true:
+_guessC.true:
 	jal _printMan
 	j _guessC.Loop
-	_guessC.Win:
+_guessC.Win:
 	li $v0,4
 	la $a0,tbThang
 	syscall
+	lw $t0,point
+	lw $t1,nW
+	add $t0,$t0,$t1
+	sw $t0,point
 	li $v0,1
 	j _guessC.end
-	_guessC.Lose:
+_guessC.Lose:
 	li $v0,4
 	la $a0,tbThua
 	syscall
 	li $v0,0
-	_guessC.end:
+	sw $0,state
+_guessC.end:
 	
 	#unstack
 	lw $ra,($sp)
