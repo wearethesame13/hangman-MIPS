@@ -74,9 +74,7 @@ out1:
 	sub $t0,$t0,1
 	sw $t0,soNguoiChoi	#In so nguoi choi dem duoc vao bien soNguoiChoi
 
-	la $a0,GetScore
-	li $v0,4
-	syscall
+
 	la $s3,Stt
 	lw $t0,soNguoiChoi
 	li $t1,1
@@ -114,7 +112,6 @@ convert:
 
 toconvert:
 	jal ConvertStrToInt	#goi ham chuyen tu ky tu sang so
-	
 	
 	sw $v0,($s3)		#store word gia tri so vua chuyen vao mang Score
 	addi $s1,$s1,1		# Tang dia chi 2 mang
