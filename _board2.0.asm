@@ -1,7 +1,8 @@
 .data
 	fin: .asciiz "D:/nguoichoi.txt"
 	ins: .asciiz "\n "
-	list: .space 1000
+	tb1: .asciiz "Top 10 diem cao nhat \n"
+	list: .space 1024
 	Score: .word 20
 	GetScore: .space 100
 	Stt: .word 20
@@ -10,6 +11,18 @@
 	
 	
 .text
+	jal _board
+
+	li $v0,10
+	syscall	
+_board:
+	addi $sp,$sp,-32
+	sw $ra,($sp)
+	
+	li $v0,4
+	la $a0,tb1
+	syscall
+
 	#openfile
 	li $v0,13
 	la $a0,fin
@@ -27,14 +40,6 @@
 	li $a2,1000
 	syscall
 	
-	#xuat str
-	#li $v0,4
-	#la $a0,list
-	#syscall
-
-	li $v0,4
-	la $a0,ins
-	syscall
 
 	#Lay diem tu chuoi va push stt vao list stt
 	la $s0,list
@@ -49,33 +54,29 @@ Getscore:
 	j Getscore
 
 checkScoreOrMatch:
-	addi $s0,$s0,3	#Tang dia chi mang len de doc 
+	addi $s0,$s0,1	#Tang dia chi mang len de doc 
 	lb $t1,($s0)
-	bne $t1,'-',getscorenext	#Neu byte doc duoc khong phai la - thi out ra va doc tiep 
-	addi $s0,$s0,-2
+	beq $t1,'-',getscorenext	#Neu byte doc duoc la - thi out ra va doc tiep 
 
-	lb $t1,($s0)		#Doc ky tu thuoc diem so ra va store vao chuoi chua diem so
+					#Doc ky tu thuoc diem so ra va store vao chuoi chua diem so
 	sb $t1,($s1)
-	lb $t1,1($s0)
-	sb $t1,1($s1)
-
-	addi $s1,$s1,2
-	addi $s0,$s0,4
-
-	addi $t0,$t0,1
-	
-	j Getscore
+	addi $s1,$s1,1
+	j checkScoreOrMatch
 
 getscorenext:
-	addi $s0,$s0,4		#Tang dia chi chuoi list
+	addi $t0,$t0,1
+	li $t7,'*'
+	sb $t7,($s1)
+	addi $s1,$s1,1
+	addi $s0,$s0,5		#Tang dia chi chuoi list
 	j Getscore
 out1:
 	sub $t0,$t0,1
 	sw $t0,soNguoiChoi	#In so nguoi choi dem duoc vao bien soNguoiChoi
 
-	#la $a0,GetScore
-	#li $v0,4
-	#syscall
+	la $a0,GetScore
+	li $v0,4
+	syscall
 	la $s3,Stt
 	lw $t0,soNguoiChoi
 	li $t1,1
@@ -94,16 +95,29 @@ out2:
 	
 
 convert:
+	li $a0,-1
+	li $a1,-1
+	li $a2,-1
 	lb $a0,($s1)	 	#Load byte cua mang GetScore
-	
 	beq $a0,'\n',out3	#Neu doc den cuoi chuoi thi out
-	lb $a1,1($s1)
+	beq $a0,'*',toconvert
 
+	addi $s1,$s1,1
+	lb $a1,($s1)
+	beq $a1,'\n',out3	#Neu doc den cuoi chuoi thi out
+	beq $a1,'*',toconvert
+
+	addi $s1,$s1,1
+	lb $a2,($s1)
+	beq $a2,'\n',out3	#Neu doc den cuoi chuoi thi out
+	beq $a2,'*',toconvert
+
+toconvert:
 	jal ConvertStrToInt	#goi ham chuyen tu ky tu sang so
 	
-	move $t2,$v0
-	sw $t2,($s3)		#store word gia tri so vua chuyen vao mang Score
-	addi $s1,$s1,2		# Tang dia chi 2 mang
+	
+	sw $v0,($s3)		#store word gia tri so vua chuyen vao mang Score
+	addi $s1,$s1,1		# Tang dia chi 2 mang
 	addi $s3,$s3,4
 	j convert
 out3:
@@ -190,20 +204,205 @@ endprint:
 	j Xuat			#Quay tro lai vong lap ban dau
 	
 end:	
-
-	li $v0,10
-	syscall
-
-
+	lw $ra,($sp)
+	addi $sp,$sp,32
+	jr $ra
 
 #=================Chuyen ky tu thanh so=================
 ConvertStrToInt:		#Chuyen ky tu thanh so : 
 				# so = hang tram*100 + hang chuc*10 + don vi
-	addi $sp,$sp,-32
-	sw $a0,($sp)
-	sw $a1,4($sp)
-	sw $ra,8($sp)
+
+	sw $a0,4($sp)
+	sw $a1,8($sp)
+	sw $ra,12($sp)
+	sw $a2,16($sp)
 	
+	beq $a2,-1,check
+	beq $a2,0,dov0
+	beq $a2,1,dov1
+	beq $a2,2,dov2
+	beq $a2,3,dov3
+	beq $a2,4,dov4
+	beq $a2,5,dov5
+	beq $a2,6,dov6
+	beq $a2,7,dov7
+	beq $a2,8,dov8
+	beq $a2,9,dov9
+dov0:
+	li $s2,0
+	j hangchuc
+dov1:
+	li $s2,1
+	j hangchuc
+dov2:
+	li $s2,2
+	j hangchuc
+dov3:
+	li $s2,3
+	j hangchuc
+dov4:
+	li $s2,4
+	j hangchuc
+dov5:
+	li $s2,5
+	j hangchuc
+dov6:
+	li $s2,6
+	j hangchuc
+dov7:
+	li $s2,7
+	j hangchuc
+dov8:
+	li $s2,8
+	j hangchuc
+dov9:
+	li $s2,9
+	j hangchuc
+
+hangchuc:
+	beq $a1,0,hachu0
+	beq $a1,1,hachu1
+	beq $a1,2,hachu2
+	beq $a1,3,hachu3
+	beq $a1,4,hachu4
+	beq $a1,5,hachu5
+	beq $a1,6,hachu6
+	beq $a1,7,hachu7
+	beq $a1,8,hachu8
+	beq $a1,9,hachu9
+hachu0:
+	li $s1,0
+	j hangtram
+hachu1:
+	li $s1,1
+	j hangtram
+hachu2:
+	li $s1,2
+	j hangtram
+hachu3:
+	li $s1,3
+	j hangtram
+hachu4:
+	li $s1,4
+	j hangtram
+hachu5:
+	li $s1,5
+	j hangtram
+hachu6:
+	li $s1,6
+	j hangtram
+hachu7:
+	li $s1,7
+	j hangtram
+hachu8:
+	li $s1,8
+	j hangtram
+hachu9:
+	li $s1,9
+	j hangtram
+	
+hangtram:
+	beq $a0,0,hatr0
+	beq $a0,1,hatr1
+	beq $a0,2,hatr2
+	beq $a0,3,hatr3
+	beq $a0,4,hatr4
+	beq $a0,5,hatr5
+	beq $a0,6,hatr6
+	beq $a0,7,hatr7
+	beq $a0,8,hatr8
+	beq $a0,9,hatr9
+hatr0:
+	li $s0,0
+	j convert3x
+hatr1:
+	li $s0,1
+	j convert3x
+hatr2:
+	li $s0,2
+	j convert3x
+hatr3:
+	li $s0,3
+	j convert3x
+hatr4:
+	li $s0,4
+	j convert3x
+hatr5:
+	li $s0,5
+	j convert3x
+hatr6:
+	li $s0,6
+	j convert3x
+hatr7:
+	li $s0,7
+	j convert3x
+hatr8:
+	li $s0,8
+	j convert3x
+hatr9:
+	li $s0,9
+	j convert3x
+
+convert3x:
+	li $s3,100
+	li $s4,10
+	add $v0,$s2,$zero
+	
+	mult $s1,$s4
+	mflo $s1
+	add $v0,$v0,$s1
+	mult $s0,$s3
+	mflo $s0
+	add $v0,$v0,$s0
+	
+	j exit_function
+	
+check:
+	bne $a1,-1,chuso
+	
+	beq $a0,'0',dvi0
+	beq $a0,'1',dvi1
+	beq $a0,'2',dvi2
+	beq $a0,'3',dvi3
+	beq $a0,'4',dvi4
+	beq $a0,'5',dvi5
+	beq $a0,'6',dvi6
+	beq $a0,'7',dvi7
+	beq $a0,'8',dvi8	
+	beq $a0,'9',dvi9
+
+dvi0:
+	li $v0,0
+	j exit_function
+dvi1:
+	li $v0,1
+	j exit_function
+dvi2:
+	li $v0,2
+	j exit_function
+dvi3:
+	li $v0,3
+	j exit_function
+dvi4:
+	li $v0,4
+	j exit_function
+dvi5:
+	li $v0,5
+	j exit_function
+dvi6:
+	li $v0,6
+	j exit_function
+dvi7:
+	li $v0,7
+	j exit_function
+dvi8:
+	li $v0,8
+	j exit_function
+dvi9:
+	li $v0,9
+	j exit_function	
+
+chuso:
 	beq $a0,'1',chuc1
 	beq $a0,'2',chuc2
 	beq $a0,'3',chuc3
@@ -288,11 +487,14 @@ convertx:
 	mult $s0,$s2
 	mflo $s3
 	add $v0,$s3,$s1
-	
-	lw $a0,($sp)
-	lw $a1,4($sp)
-	lw $ra,8($sp)
-	addi $sp,$sp,32
+	j exit_function
+
+exit_function:
+	lw $a0,4($sp)
+	lw $a1,8($sp)
+	lw $ra,12($sp)
+	lw $a2,16($sp)
+
 	jr $ra
 	
 
