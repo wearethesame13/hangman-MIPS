@@ -62,6 +62,9 @@ main:
 	jal _inputName
 	jal _mode
 	
+	li $v0,4
+	la $a0,tbThang
+	syscall
 	
 	li $v0,10
 	syscall
@@ -94,10 +97,6 @@ _randWord:
 	li   $a2, 1024    # hardcoded buffer length
 	syscall            # read from file
 
-	#test
-	li $v0, 11
-	li $a0, '\n'
-	syscall
 	# Close the file
 	li   $v0, 16       # system call for close file
 	move $a0, $s6      # file descriptor to close
@@ -112,17 +111,18 @@ _randWord:
 
 	jal _randWord.FindNumberOfWord
 	
-	
+
 	
 	sw $t9,  numberOfWord
-	
 
 	jal _randWord.FindRandomNumber
+
 
 	lw $a0, randNumb
 	lw $a1, nW
 	la $a2, curW	
 	la $a3, buffer
+
 	
 	jal _randWord.FindRandomWord
 
@@ -132,7 +132,6 @@ _randWord:
 	lw $a0,nW
 	la $a1,arrW
 	la $a2,curW
-
 
 	lw $ra,($sp)
 	lw $v0,4($sp)
@@ -334,16 +333,17 @@ _printWord:
 	
 _printWord.Loop:
 	lb $t3, ($s1)
+	
 	beq $t3, $t1, _printWord.Loop.printUnderScore
 	beq $t3, $t2, _printWord.Loop.printCharacter
 _printWord.Loop.printUnderScore: 
-	li $v0, 4
-	la $a0, underScore
+	li $v0, 11
+	lb $a0, underScore
 	syscall
 	j _printWord.Loop.printCharacter.GoBack
 _printWord.Loop.printCharacter:
-	li $v0, 4
-	la $a0, ($s2)
+	li $v0, 11
+	lb $a0, ($s2)
 	syscall
 	j _printWord.Loop.printCharacter.GoBack
 
@@ -447,51 +447,88 @@ remove:
 skip:
 	jr $ra
 
+
 _mode:
-	    #goi _randWord
-	jal _randWord
     la $a0,nhapmode
     li $v0,4
     syscall
-
+	
+	
+	
 	li $v0, 12
 	syscall
 	lb $t1, modeword
-	beq $v0, $t1, _Func_guessW
-	bne $v0, $t1, _guessC
-	
+	beq $v0, 'w', _Func_guessW
+	beq $v0, 'c', _Func_guessC
+
 
 _mode.exit:
 	li      $v0,10
 	syscall
 _Func_guessW:
+	#goi _randWord
+	jal _randWord
+	
+	
 	jal _guessW
 	beq $v0,0, _mode.exit
 	
-	
-	
 	la $a0,tbtt
-    li $v0,4
-    syscall
-    li $t0, 'y'
+	li $v0,4
+	syscall
+	li $t0, 'y'
 	li $v0, 12
 	syscall
-	beq $t0, $v0, _mode
+	beq $t0, $v0, _Func_guessW
 	j _mode.exit
+
+_Func_guessC:
+	jal _randWord
+	jal _guessC
+	beq $v0,0, _mode.exit
+	la      $a0,tbtt
+	li      $v0,4
+	syscall
+	
+	li $t0, 'y'
+	li $v0, 12
+	syscall
+	
+	beq $t0, $v0, _Func_guessC
+	j _mode.exit
+
+
 _guessW:
 	addi $sp, $sp, -4
 	sw $ra,($sp)
 	
 	
     # get first string
-    la      $s2,str1
-    move    $t2,$s2
-    jal     getstr
-
+    la      $s2,curW
+	
+	#li $v0,4
+	#la $a0, curW
+	#syscall 
+	
+	# special
+	la $t6, curW
+Special_Loop:
+	lb $t7, ($t6)
+	beqz $t7, Special
+	addi $t6, $t6, 1
+	j Special_Loop
+Special:
+	li $t7, '\n'
+	sb $t7, ($t6)
+	addi $t6, $t6, 1
+	sb $0, ($t6)
+	
     # get second string
     la      $s3,str2
     move    $t2,$s3
     jal     getstr
+    
+    
     
     j cmploop
     
