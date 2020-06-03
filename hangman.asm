@@ -19,21 +19,29 @@
 	state6: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|    / \\\n|\n|\n|\n"
 	randNum: .word 0
 	underScore: .asciiz "_"
-	
+	myGuessW: .space 20
 	point: .word 0
-	prompt:     .asciiz     "Enter string ('.' to end) > "
+	prompt:     .asciiz     "Tu ban doan la: "
 	dot:        .asciiz     "\n"
-	eqmsg:      .asciiz     "strings are equal\n"
-	nemsg:      .asciiz     "strings are not equal\n"
+	eqmsg:      .asciiz     "Ban da thang\n"
+	nemsg:      .asciiz     "Ban da thua\n"
 	nhapmode: .asciiz "Nhap che do choi theo tu[w] hay ki tu[c]: "
 	str1:       .space      80
 	str2:       .space      80
 	modeword: .byte 'w'
-	tbtt: .asciiz "Keep playing? Yes[y]/No[n] (default is No): "
+	tbtt: .asciiz "Choi tiep? Yes[y]/No[n] (mac dinh la No): "
 	
 	tbG: .asciiz "Nhap ki tu: "
 	tbThang: .asciiz "Ban da chien thang"
 	tbThua: .asciiz "Ban da thua"
+	
+	fileName: .asciiz "nguoichoi.txt"
+	lenName: .word 0
+	lenPoint: .word 0
+	lennWin: .word 0
+	
+	replay: .asciiz"\nBan co muon choi lai khong: 1. Co, 0. Khong"
+	subSymbol: .asciiz"-"
 .text
 main:
 	#li $v0,5
@@ -60,11 +68,15 @@ main:
 	#syscall
 
 	jal _inputName
+start:
 	jal _mode
 	
-	li $v0,4
-	la $a0,tbThang
-	syscall
+	jal _endPoint
+	jal _export
+	#reset point and nWin
+	sw $0,point
+	sw $0,nWin
+	jal _continue
 	
 	li $v0,10
 	syscall
@@ -449,9 +461,14 @@ skip:
 
 
 _mode:
-    la $a0,nhapmode
-    li $v0,4
-    syscall
+	addi $sp,$sp,-4
+	sw $ra,($sp)
+_mode.continue:
+	sw $0,state
+	
+	la $a0,nhapmode
+	li $v0,4
+	syscall
 	
 	
 	
@@ -463,26 +480,31 @@ _mode:
 
 
 _mode.exit:
-	li      $v0,10
-	syscall
+	lw $ra, ($sp)
+	addi $sp,$sp,4
+	#li $v0,10
+	#syscall
+	jr $ra
 _Func_guessW:
 	#goi _randWord
 	jal _randWord
 	
-	
 	jal _guessW
 	beq $v0,0, _mode.exit
-	
-	la $a0,tbtt
-	li $v0,4
+	la      $a0,tbtt
+	li      $v0,4
 	syscall
+	
 	li $t0, 'y'
 	li $v0, 12
 	syscall
-	beq $t0, $v0, _Func_guessW
+	
+	beq $t0, $v0, _mode.continue
 	j _mode.exit
 
+
 _Func_guessC:
+	
 	jal _randWord
 	jal _guessC
 	beq $v0,0, _mode.exit
@@ -494,22 +516,32 @@ _Func_guessC:
 	li $v0, 12
 	syscall
 	
-	beq $t0, $v0, _Func_guessC
+	beq $t0, $v0, _mode.continue
 	j _mode.exit
 
 
 _guessW:
-	addi $sp, $sp, -4
+	addi $sp, $sp, -20
 	sw $ra,($sp)
+	sw $s2,4($sp)
+	sw $s3,8($sp)
+	sw $t6,12($sp)
+	sw $t7,16($sp)
 	
+	#lw $a0,nW
+	#la $a1,arrW
+	#la $a2,curW
+	#jal _printWord
+   
+
+
 	
     # get first string
-    la      $s2,curW
+    la $s2,curW
 	
 	#li $v0,4
 	#la $a0, curW
-	#syscall 
-	
+	#syscall
 	# special
 	la $t6, curW
 Special_Loop:
@@ -522,13 +554,26 @@ Special:
 	sb $t7, ($t6)
 	addi $t6, $t6, 1
 	sb $0, ($t6)
-	
+	#debug
+	la $a0, curW
+	li $v0,4
+	syscall
     # get second string
-    la      $s3,str2
-    move    $t2,$s3
-    jal     getstr
-    
-    
+    #la      $s3,str2
+    #move    $t2,$s3
+    #jal     getstr
+    la $a0, myGuessW
+    li $a1,20       # Max number of characters 20
+    li $v0,8
+    syscall         # Prompting User
+        li $s0,0        # Set index to 0
+
+
+
+    la $s3, myGuessW
+	la $a0, myGuessW
+	li $v0,4
+	syscall
     
     j cmploop
     
@@ -557,57 +602,33 @@ cmpne:
 cmpeq:
     lw $s1, nW
     lw $s2, point
-    
     add $s2,$s2,$s1
-    
     sw $s2, point
-    
-
-    
+    lw $s1,nWin
+    addi $s1,$s1,1
+    sw $s1,nWin
     la      $a0,eqmsg
     li      $v0,4
-    
-    
     syscall
     li $v0,1
     j _guessW.exit
 
-# getstr -- prompt and read string from user
-#
-# arguments:
-#   t2 -- address of string buffer
-getstr:
-
-	addi $sp, $sp, -8
-	sw $ra,($sp)
-	sw $t2, 4($sp)
-    # prompt the user
-    la      $a0,prompt
-    li      $v0,4
-    syscall
-
-    # read in the string
-    move    $a0,$t2
-    li      $a1,79
-    li      $v0,8
-    syscall
-
-    # should we stop?
-    la      $a0,dot                     # get address of dot string
-    lb      $a0,($a0)                   # get the dot value
-    lb      $t2,($t2)                   # get first char of user string
-    beq     $t2,$a0,getstr.exit                # equal? yes, exit program
-
-                          # return
-getstr.exit:
-	lw $ra, ($sp)
-	lw $t2, 4($sp)
-	
-	addi $sp, $sp, 8
-	jr $ra
 _guessW.exit:
-	lw $ra, ($sp)
-	addi $sp,$sp,4
+ li $s0,0        # Set index to 0
+	remove2:
+    lb $a3,curW($s0)    # Load character at index
+    addi $s0,$s0,1      # Increment index
+    bnez $a3,remove2     # Loop until the end of string is reached
+    beq $a1,$s0,skip2    # Do not remove \n when string = maxlength
+    subiu $s0,$s0,2     # If above not true, Backtrack index to '\n'
+    sb $0, curW($s0)    # Add the terminating character in its place
+    skip2:
+	lw $ra,($sp)
+	lw $s2,4($sp)
+	lw $s3,8($sp)
+	lw $t6,12($sp)
+	lw $t7,16($sp)
+	addi $sp,$sp,20
 	jr $ra
 
 
@@ -724,6 +745,9 @@ _guessC.Win:
 	lw $t1,nW
 	add $t0,$t0,$t1
 	sw $t0,point
+	lw $t0,nWin
+	addi $t0,$t0,1
+	sw $t0,nWin
 	li $v0,1
 	j _guessC.end
 _guessC.Lose:
@@ -744,4 +768,252 @@ _guessC.end:
 	lw $t4,24($sp)
 	lw $t5,28($sp)
 	addi $sp,$sp,32
+	jr $ra
+	
+_export:
+	# Dau thu tuc
+	# Khai bao stack
+	addi $sp, $sp, -56
+	sw $ra, ($sp)
+	sw $t0, 4($sp)
+	sw $t1, 8($sp)
+	sw $t2, 12($sp)
+	sw $t3, 16($sp)
+	sw $t4, 20($sp)
+	sw $a0, 24($sp)
+	sw $a1, 28($sp)
+	sw $a2, 32($sp)
+	sw $s0, 36($sp)
+	sw $s1, 40($sp)
+	sw $s2, 44($sp)
+	sw $s5, 48($sp)
+	sw $s6, 52($sp)
+	
+	# Tinh strlen cua name
+	# khoi tao vong lap
+	li $t1,0
+    	la $t0, name
+    	
+dest_1:
+    	lb   $a0,0($t0)
+    	beqz $a0,done1
+    	addi $t0,$t0,1
+    	addi $t1,$t1,1
+    	j dest_1
+    	
+done1:
+    	# t1 chua strlen
+ 	sw $t1, lenName
+ 	
+ 	# Tinh strlen cua Point
+ 	# khoi tao vong lap
+	li $t1,0
+    	lw $t0, point
+    	li $t2, 10
+dest_2:
+    	div $t0, $t2
+    	mflo $t3
+    	mfhi $t4
+    	addi $t1, $t1, 1
+    	move $t0, $t3
+    	bne $t3, 0, dest_2
+    	
+	sw $t1, lenPoint
+	
+	# Tinh strlen cua nWin
+ 	# khoi tao vong lap
+	li $t1,0
+    	lw $t0, nWin
+    	li $t2, 10
+dest_3:
+    	div $t0, $t2
+    	mflo $t3
+    	mfhi $t4
+    	addi $t1, $t1, 1
+    	move $t0, $t3
+    	bne $t3, 0, dest_3
+    	
+	sw $t1, lennWin
+
+	
+	# Luu ten nguoi dung vao nguoichoi.txt
+	# Open (for writing) a file that does not exist
+ 	li   $v0, 13       # system call for open file
+  	la   $a0, fileName     # output file name
+  	li   $a1, 9        # Open for writing (flags are 0: read, 1: write)
+  	li   $a2, 0        # mode is ignored
+  	syscall            # open a file (file descriptor returned in $v0)
+  	move $s6, $v0      # save the file descriptor 
+  ###############################################################
+  	# Write to file just opened
+  	li   $v0, 15       # system call for write to file
+  	move $a0, $s6      # file descriptor 
+  	la   $a1, name   # address of buffer from which to write
+  	lw $t1, lenName
+ 	move   $a2, $t1      # hardcoded buffer length
+ 	syscall            # write to file
+ 	
+ 	# Cap phat 1 byte de ghi "-"
+	li $v0, 9
+	li $a0, 1
+	syscall
+	move $s5, $v0
+ 	# Ghi dau "-"
+ 	li $t1, 45
+ 	sb $t1, ($s5)
+ 	
+ 	# Write "-" to file 
+ 	li   $v0, 15       
+  	move $a0, $s6      
+  	move   $a1, $s5   
+ 	li   $a2, 1     
+ 	syscall     
+ 	
+ 	# Cap phat 4 bytes cho $s0
+ 	li $v0, 9
+ 	li $a0, 4
+ 	syscall
+ 	move $s0, $v0
+ 	
+	lw $s1, point
+	li $s2, 10
+ 	addi $s0, $s0, 4
+tachso:
+ 	addi $s0, $s0, -1
+ 	div $s1, $s2
+ 	mflo $t1
+ 	mfhi $t2
+ 	addi $t2, $t2, 48
+ 	sb $t2, 0($s0)
+ 	move $s1, $t1
+ 	bne $t1, 0, tachso
+ 	
+ 	
+ 	# Write Point
+ 	li   $v0, 15       
+  	move $a0, $s6
+  	move $a1, $s0
+ 	lw $t1, lenPoint
+ 	move $a2, $t1
+ 	syscall
+ 	
+ 	# Write "-" to file 
+ 	li   $v0, 15       
+  	move $a0, $s6      
+  	move   $a1, $s5   
+ 	li   $a2, 1     
+ 	syscall  
+
+
+	# Write "nWin"
+	# Cap phat 4 bytes cho $s0
+ 	li $v0, 9
+ 	li $a0, 4
+ 	syscall
+ 	move $s0, $v0
+ 	
+	lw $s1, nWin
+	li $s2, 10
+ 	addi $s0, $s0, 4
+tachso1:
+ 	addi $s0, $s0, -1
+ 	div $s1, $s2
+ 	mflo $t1
+ 	mfhi $t2
+ 	addi $t2, $t2, 48
+ 	sb $t2, 0($s0)
+ 	move $s1, $t1
+ 	bne $t1, 0, tachso1
+ 	
+ 	# Write nWin
+ 	li   $v0, 15       
+  	move $a0, $s6
+  	move $a1, $s0
+ 	lw $t1, lennWin
+ 	move $a2, $t1
+ 	syscall
+ 	
+ 	# Write "*"
+ 	# Ghi dau "*"
+ 	li $t1, 42
+ 	sb $t1, ($s5)
+ 	
+ 	# Write "*" to file 
+ 	li   $v0, 15       
+  	move $a0, $s6      
+  	move   $a1, $s5   
+ 	li   $a2, 1     
+ 	syscall     
+	
+ 	
+  ###############################################################
+  	# Close the file 
+  	li   $v0, 16       # system call for close file
+  	move $a0, $s6      # file descriptor to close
+  	syscall            # close file
+  ###############################################################
+  
+  # Cuoi thu tuc: Restore
+  	lw $ra, ($sp)
+	lw $t0, 4($sp)
+	lw $t1, 8($sp)
+	lw $t2, 12($sp)
+	lw $t3, 16($sp)
+	lw $t4, 20($sp)
+	lw $a0, 24($sp)
+	lw $a1, 28($sp)
+	lw $a2, 32($sp)
+	lw $s0, 36($sp)
+	lw $s1, 40($sp)
+	lw $s2, 44($sp)
+	lw $s5, 48($sp)
+	lw $s6, 52($sp)
+  # Xoa stack
+  	add $sp, $sp, 56
+  	jr $ra
+  	
+_endPoint: 
+	# In ten nguoi choi
+	li $v0, 4
+	la $a0, name
+	syscall
+	
+	# In -
+	li $v0, 4
+	la $a0, subSymbol
+	syscall
+	
+	# In Tong diem
+	li $v0, 1
+	lw $a0, point
+	syscall
+	
+	# In -
+	li $v0, 4
+	la $a0, subSymbol
+	syscall
+	
+	# In So luot thang
+	li $v0, 1
+	lw $a0, nWin
+	syscall
+	jr $ra
+
+	
+_continue:
+	# Thong bao choi lai
+	li $v0, 4
+	la $a0, replay
+	syscall
+	
+	# Nhap lua chon
+	li $v0, 5
+	syscall
+	
+	# Neu co thi -> mode
+	beq $v0, 1, start
+	
+	# Ket thuc chuong trinh
+	li $v0, 10
+	syscall
 	jr $ra
