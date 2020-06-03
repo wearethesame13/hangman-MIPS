@@ -6,7 +6,7 @@
 	Score: .word 20
 	GetScore: .space 100
 	Stt: .word 20
-	soNguoiChoi: .word 0
+	soNguoiChoi: .word 1
 	infoPlayer: .space 20
 	
 	
@@ -74,7 +74,7 @@ out1:
 	sub $t0,$t0,1
 	sw $t0,soNguoiChoi	#In so nguoi choi dem duoc vao bien soNguoiChoi
 
-
+	
 	la $s3,Stt
 	lw $t0,soNguoiChoi
 	li $t1,1
@@ -88,44 +88,71 @@ pushStt:			#Dua cac gia tri stt tuong ung vao mang Stt
 out2:
 
 	#Chuyen doi chuoi diem thanh so nguyen de so sanh
+	
+	li $v0,4
+	la $a0,GetScore
+	syscall
+	
+	li $v0,4
+	la $a0,ins
+	syscall
+
 	la $s1,GetScore
 	la $s3,Score
-	
 
+	
 convert:
-	li $a0,-1
-	li $a1,-1
-	li $a2,-1
+
 	lb $a0,($s1)	 	#Load byte cua mang GetScore
 	beq $a0,'\0',out3	#Neu doc den cuoi chuoi thi out
-	beq $a0,'*',toconvert
 
 	addi $s1,$s1,1
 	lb $a1,($s1)
-	beq $a1,'\0',out3	#Neu doc den cuoi chuoi thi out
-	beq $a1,'*',toconvert
+	beq $a1,'*',toconvert1
 
 	addi $s1,$s1,1
 	lb $a2,($s1)
-	beq $a2,'\0',out3	#Neu doc den cuoi chuoi thi out
-	beq $a2,'*',toconvert
+	beq $a2,'*',toconvert2
+	j toconvert3
 
-toconvert:
+toconvert1:
+	li $a1,11
+	li $a2,11
 	jal ConvertStrToInt	#goi ham chuyen tu ky tu sang so
 	
 	sw $v0,($s3)		#store word gia tri so vua chuyen vao mang Score
 	addi $s1,$s1,1		# Tang dia chi 2 mang
 	addi $s3,$s3,4
 	j convert
+toconvert2:
+	li $a2,11
+
+	jal ConvertStrToInt	#goi ham chuyen tu ky tu sang so
+	
+	sw $v0,($s3)		#store word gia tri so vua chuyen vao mang Score
+	addi $s1,$s1,1		# Tang dia chi 2 mang
+	addi $s3,$s3,4
+	j convert
+toconvert3:
+	
+	jal ConvertStrToInt	#goi ham chuyen tu ky tu sang so
+	
+	sw $v0,($s3)		#store word gia tri so vua chuyen vao mang Score
+	addi $s1,$s1,2		# Tang dia chi 2 mang
+	addi $s3,$s3,4
+	j convert
 out3:
 	#Sap xep mang Score va dao stt tuong ung
+	
+	
+
+	la $s0,list
 	la $s1,Score
-	li $v0,1
-	la $a0,0($s1)
-	syscall
+
+
 	la $s2,Stt
-	move $s3,$s1
-	move $s4,$s2
+	la $s3,Score
+	la $s4,Stt
 	li $t7,1
 	lw $t0,soNguoiChoi
 	#Dung 2 vong lap de sap xep
@@ -221,149 +248,15 @@ ConvertStrToInt:		#Chuyen ky tu thanh so :
 	sw $s3,20($sp)
 	sw $s4,24($sp)
 	
-	beq $a2,-1,check
-	beq $a2,0,dov0
-	beq $a2,1,dov1
-	beq $a2,2,dov2
-	beq $a2,3,dov3
-	beq $a2,4,dov4
-	beq $a2,5,dov5
-	beq $a2,6,dov6
-	beq $a2,7,dov7
-	beq $a2,8,dov8
-	beq $a2,9,dov9
-dov0:
-	li $s2,0
-	j hangchuc
-dov1:
-	li $s2,1
-	j hangchuc
-dov2:
-	li $s2,2
-	j hangchuc
-dov3:
-	li $s2,3
-	j hangchuc
-dov4:
-	li $s2,4
-	j hangchuc
-dov5:
-	li $s2,5
-	j hangchuc
-dov6:
-	li $s2,6
-	j hangchuc
-dov7:
-	li $s2,7
-	j hangchuc
-dov8:
-	li $s2,8
-	j hangchuc
-dov9:
-	li $s2,9
-	j hangchuc
+	beq $a2,11,check
+	j bachuso
+	
 
-hangchuc:
-	beq $a1,0,hachu0
-	beq $a1,1,hachu1
-	beq $a1,2,hachu2
-	beq $a1,3,hachu3
-	beq $a1,4,hachu4
-	beq $a1,5,hachu5
-	beq $a1,6,hachu6
-	beq $a1,7,hachu7
-	beq $a1,8,hachu8
-	beq $a1,9,hachu9
-hachu0:
-	li $s1,0
-	j hangtram
-hachu1:
-	li $s1,1
-	j hangtram
-hachu2:
-	li $s1,2
-	j hangtram
-hachu3:
-	li $s1,3
-	j hangtram
-hachu4:
-	li $s1,4
-	j hangtram
-hachu5:
-	li $s1,5
-	j hangtram
-hachu6:
-	li $s1,6
-	j hangtram
-hachu7:
-	li $s1,7
-	j hangtram
-hachu8:
-	li $s1,8
-	j hangtram
-hachu9:
-	li $s1,9
-	j hangtram
-	
-hangtram:
-	beq $a0,0,hatr0
-	beq $a0,1,hatr1
-	beq $a0,2,hatr2
-	beq $a0,3,hatr3
-	beq $a0,4,hatr4
-	beq $a0,5,hatr5
-	beq $a0,6,hatr6
-	beq $a0,7,hatr7
-	beq $a0,8,hatr8
-	beq $a0,9,hatr9
-hatr0:
-	li $s0,0
-	j convert3x
-hatr1:
-	li $s0,1
-	j convert3x
-hatr2:
-	li $s0,2
-	j convert3x
-hatr3:
-	li $s0,3
-	j convert3x
-hatr4:
-	li $s0,4
-	j convert3x
-hatr5:
-	li $s0,5
-	j convert3x
-hatr6:
-	li $s0,6
-	j convert3x
-hatr7:
-	li $s0,7
-	j convert3x
-hatr8:
-	li $s0,8
-	j convert3x
-hatr9:
-	li $s0,9
-	j convert3x
-
-convert3x:
-	li $s3,100
-	li $s4,10
-	add $v0,$s2,$zero
-	
-	mult $s1,$s4
-	mflo $s1
-	add $v0,$v0,$s1
-	mult $s0,$s3
-	mflo $s0
-	add $v0,$v0,$s0
-	
-	j exit_function
 	
 check:
-	bne $a1,-1,chuso
-	
+	bne $a1,11,chuso
+	j motchuso
+motchuso:
 	beq $a0,'0',dvi0
 	beq $a0,'1',dvi1
 	beq $a0,'2',dvi2
@@ -418,31 +311,31 @@ chuso:
 	beq $a0,'9',chuc9
 
 chuc1:
-	li $s0,1
+	li $s0,10
 	j donvi
 chuc2:
-	li $s0,2
+	li $s0,20
 	j donvi
 chuc3:
-	li $s0,3
+	li $s0,30
 	j donvi
 chuc4:
-	li $s0,4
+	li $s0,40
 	j donvi
 chuc5:
-	li $s0,5
+	li $s0,50
 	j donvi
 chuc6:
-	li $s0,6
+	li $s0,60
 	j donvi
 chuc7:
-	li $s0,7
+	li $s0,70
 	j donvi
 chuc8:
-	li $s0,8
+	li $s0,80
 	j donvi
 chuc9:
-	li $s0,9
+	li $s0,90
 	j donvi
 donvi:
 	beq $a1,'0',dv0
@@ -487,11 +380,142 @@ dv9:
 	li $s1,9
 	j convertx
 convertx:
-	li $s2,10
-	mult $s0,$s2
-	mflo $s3
-	add $v0,$s3,$s1
+
+	add $v0,$s0,$s1
 	j exit_function
+
+
+
+
+bachuso:
+	beq $a2,0,dov0
+	beq $a2,1,dov1
+	beq $a2,2,dov2
+	beq $a2,3,dov3
+	beq $a2,4,dov4
+	beq $a2,5,dov5
+	beq $a2,6,dov6
+	beq $a2,7,dov7
+	beq $a2,8,dov8
+	beq $a2,9,dov9
+dov0:
+	li $s2,0
+	j hangchuc
+dov1:
+	li $s2,1
+	j hangchuc
+dov2:
+	li $s2,2
+	j hangchuc
+dov3:
+	li $s2,3
+	j hangchuc
+dov4:
+	li $s2,4
+	j hangchuc
+dov5:
+	li $s2,5
+	j hangchuc
+dov6:
+	li $s2,6
+	j hangchuc
+dov7:
+	li $s2,7
+	j hangchuc
+dov8:
+	li $s2,8
+	j hangchuc
+dov9:
+	li $s2,9
+	j hangchuc
+
+hangchuc:
+	
+	beq $a1,1,hachu1
+	beq $a1,2,hachu2
+	beq $a1,3,hachu3
+	beq $a1,4,hachu4
+	beq $a1,5,hachu5
+	beq $a1,6,hachu6
+	beq $a1,7,hachu7
+	beq $a1,8,hachu8
+	beq $a1,9,hachu9
+
+hachu1:
+	li $s1,10
+	j hangtram
+hachu2:
+	li $s1,20
+	j hangtram
+hachu3:
+	li $s1,30
+	j hangtram
+hachu4:
+	li $s1,40
+	j hangtram
+hachu5:
+	li $s1,50
+	j hangtram
+hachu6:
+	li $s1,60
+	j hangtram
+hachu7:
+	li $s1,70
+	j hangtram
+hachu8:
+	li $s1,80
+	j hangtram
+hachu9:
+	li $s1,90
+	j hangtram
+	
+hangtram:
+	
+	beq $a0,1,hatr1
+	beq $a0,2,hatr2
+	beq $a0,3,hatr3
+	beq $a0,4,hatr4
+	beq $a0,5,hatr5
+	beq $a0,6,hatr6
+	beq $a0,7,hatr7
+	beq $a0,8,hatr8
+	beq $a0,9,hatr9
+	
+hatr1:
+	li $s0,100
+	j convert3x
+hatr2:
+	li $s0,200
+	j convert3x
+hatr3:
+	li $s0,300
+	j convert3x
+hatr4:
+	li $s0,400
+	j convert3x
+hatr5:
+	li $s0,500
+	j convert3x
+hatr6:
+	li $s0,600
+	j convert3x
+hatr7:
+	li $s0,700
+	j convert3x
+hatr8:
+	li $s0,800
+	j convert3x
+hatr9:
+	li $s0,900
+	j convert3x
+
+convert3x:
+
+	add $v0,$s0,$s1
+	add $v0,$v0,$s2
+
+	j exit_function
+
 
 exit_function:
 	lw $ra,4($sp)
