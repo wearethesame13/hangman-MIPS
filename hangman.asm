@@ -21,15 +21,15 @@
 	underScore: .asciiz "_"
 	myGuessW: .space 20
 	point: .word 0
-	prompt:     .asciiz     "Enter string ('.' to end) > "
+	prompt:     .asciiz     "Tu ban doan la: "
 	dot:        .asciiz     "\n"
-	eqmsg:      .asciiz     "strings are equal\n"
-	nemsg:      .asciiz     "strings are not equal\n"
+	eqmsg:      .asciiz     "Ban da thang\n"
+	nemsg:      .asciiz     "Ban da thua\n"
 	nhapmode: .asciiz "Nhap che do choi theo tu[w] hay ki tu[c]: "
 	str1:       .space      80
 	str2:       .space      80
 	modeword: .byte 'w'
-	tbtt: .asciiz "Keep playing? Yes[y]/No[n] (default is No): "
+	tbtt: .asciiz "Choi tiep? Yes[y]/No[n] (mac dinh la No): "
 	
 	tbG: .asciiz "Nhap ki tu: "
 	tbThang: .asciiz "Ban da chien thang"
@@ -518,7 +518,7 @@ _guessW:
 	#la $a2,curW
 	#jal _printWord
    
-skip2:
+
 
 	
     # get first string
@@ -595,39 +595,6 @@ cmpeq:
     li $v0,1
     j _guessW.exit
 
-# getstr -- prompt and read string from user
-#
-# arguments:
-#   t2 -- address of string buffer
-getstr:
-
-	addi $sp, $sp, -8
-	sw $ra,($sp)
-	sw $t2, 4($sp)
-     #prompt the user
-    la      $a0,prompt
-    li      $v0,4
-    syscall
-
-    # read in the string
-    move    $a0,$t2
-    li      $a1,79
-    li      $v0,8
-    syscall
-
-    # should we stop?
-    la      $a0,dot                     # get address of dot string
-    #lb      $a0,($a0)                   # get the dot value
-   lb      $t2,($t2)                   # get first char of user string
-    beq     $t2,$a0,getstr.exit                # equal? yes, exit program
-
-                          # return
-getstr.exit:
-	lw $ra, ($sp)
-	lw $t2, 4($sp)
-	
-	addi $sp, $sp, 8
-	jr $ra
 _guessW.exit:
  li $s0,0        # Set index to 0
 	remove2:
@@ -637,6 +604,7 @@ _guessW.exit:
     beq $a1,$s0,skip2    # Do not remove \n when string = maxlength
     subiu $s0,$s0,2     # If above not true, Backtrack index to '\n'
     sb $0, curW($s0)    # Add the terminating character in its place
+    skip2:
 	lw $ra,($sp)
 	lw $s2,4($sp)
 	lw $s3,8($sp)
