@@ -449,8 +449,8 @@ skip:
 
 
 _mode:
-	#addi $sp,$sp,-4
-	#sw $ra,($sp)
+	addi $sp,$sp,-4
+	sw $ra,($sp)
 	la $a0,nhapmode
 	li $v0,4
 	syscall
@@ -465,10 +465,11 @@ _mode:
 
 
 _mode.exit:
-#	lw $ra, ($sp)
-#	addi $sp,$sp,4
-	li $v0,10
-	syscall
+	lw $ra, ($sp)
+	addi $sp,$sp,4
+	#li $v0,10
+	#syscall
+	jr $ra
 _Func_guessW:
 	#goi _randWord
 	jal _randWord
