@@ -18,7 +18,7 @@
 _board:
 	addi $sp,$sp,-32
 	sw $ra,($sp)
-	
+	sw $s0,4($sp)
 	li $v0,4
 	la $a0,tb1
 	syscall
@@ -48,7 +48,7 @@ _board:
 	li $t0,1
 Getscore:
 	lb $t1,($s0)
-	beq $t1,'\n',out1	#Neu doc den cuoi chuoi thi dung lai
+	beq $t1,'\0',out1	#Neu doc den cuoi chuoi thi dung lai
 	beq $t1,'-',checkScoreOrMatch	#Doc duoc dau - thi kiem tra xem phia sau la diem so hay so man choi win
 	addi $s0,$s0,1
 	j Getscore
@@ -97,17 +97,17 @@ convert:
 	li $a1,-1
 	li $a2,-1
 	lb $a0,($s1)	 	#Load byte cua mang GetScore
-	beq $a0,'\n',out3	#Neu doc den cuoi chuoi thi out
+	beq $a0,'\0',out3	#Neu doc den cuoi chuoi thi out
 	beq $a0,'*',toconvert
 
 	addi $s1,$s1,1
 	lb $a1,($s1)
-	beq $a1,'\n',out3	#Neu doc den cuoi chuoi thi out
+	beq $a1,'\0',out3	#Neu doc den cuoi chuoi thi out
 	beq $a1,'*',toconvert
 
 	addi $s1,$s1,1
 	lb $a2,($s1)
-	beq $a2,'\n',out3	#Neu doc den cuoi chuoi thi out
+	beq $a2,'\0',out3	#Neu doc den cuoi chuoi thi out
 	beq $a2,'*',toconvert
 
 toconvert:
@@ -120,6 +120,9 @@ toconvert:
 out3:
 	#Sap xep mang Score va dao stt tuong ung
 	la $s1,Score
+	li $v0,1
+	la $a0,0($s1)
+	syscall
 	la $s2,Stt
 	move $s3,$s1
 	move $s4,$s2
@@ -164,6 +167,7 @@ footsort:
 	addi $s1,$s1,4
 	j Sort	
 out4:
+	
 	#In ra danh sach ten - diem - manchoiwin theo thu tu trong mang Stt
 	la $s1,Stt
 	lw $t0,soNguoiChoi	#load address Stt,so nguoi choi,
@@ -185,11 +189,12 @@ Tangdem:
 	j Readlist
 
 print:				#In ra tung ki tu bat dau sau dau * va ket thuc o dau * tiep theo
-	addi $s0,$s0,1
+	
 	lb $a0,($s0)
 	beq $a0,'*',endprint	#Gap dau * thi se dung in
 	li $v0,11
 	syscall
+	addi $s0,$s0,1
 	j print
 endprint:
 	li $v0,4		#Xuong dong
@@ -209,10 +214,12 @@ end:
 ConvertStrToInt:		#Chuyen ky tu thanh so : 
 				# so = hang tram*100 + hang chuc*10 + don vi
 
-	sw $a0,4($sp)
-	sw $a1,8($sp)
-	sw $ra,12($sp)
-	sw $a2,16($sp)
+	sw $ra,4($sp)
+	sw $s0,8($sp)
+	sw $s1,12($sp)
+	sw $s2,16($sp)
+	sw $s3,20($sp)
+	sw $s4,24($sp)
 	
 	beq $a2,-1,check
 	beq $a2,0,dov0
@@ -487,10 +494,12 @@ convertx:
 	j exit_function
 
 exit_function:
-	lw $a0,4($sp)
-	lw $a1,8($sp)
-	lw $ra,12($sp)
-	lw $a2,16($sp)
+	lw $ra,4($sp)
+	lw $s0,8($sp)
+	lw $s1,12($sp)
+	lw $s2,16($sp)
+	lw $s3,20($sp)
+	lw $s4,24($sp)
 
 	jr $ra
 	
