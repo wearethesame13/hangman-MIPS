@@ -980,6 +980,10 @@ tachso1:
   	jr $ra
   	
 _endPoint: 
+	li $v0,11
+	li $a0,'\n'
+	syscall
+
 	# In ten nguoi choi
 	li $v0, 4
 	la $a0, name
