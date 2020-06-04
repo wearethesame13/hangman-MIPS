@@ -18,22 +18,22 @@
 	state5: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|    /\n|\n|\n|\n"
 	state6: .asciiz "\n ______\n|     |\n|     0\n|    /|\\\n|    / \\\n|\n|\n|\n"
 	randNum: .word 0
-	underScore: .asciiz "_"
+	underScore: .asciiz "*"
 	myGuessW: .space 20
 	point: .word 0
-	prompt:     .asciiz     "Tu ban doan la: "
+	prompt:     .asciiz     "\nTu ban doan la: "
 	dot:        .asciiz     "\n"
-	eqmsg:      .asciiz     "Ban da thang\n"
-	nemsg:      .asciiz     "Ban da thua\n"
-	nhapmode: .asciiz "Nhap che do choi theo tu[w] hay ki tu[c]: "
+	eqmsg:      .asciiz     "\nBan da thang\n"
+	nemsg:      .asciiz     "\nBan da thua\n"
+	nhapmode: .asciiz "\nNhap che do choi theo tu[w] hay ki tu[c]: "
 	str1:       .space      80
 	str2:       .space      80
 	modeword: .byte 'w'
-	tbtt: .asciiz "Choi tiep? Yes[y]/No[n] (mac dinh la No): "
+	tbtt: .asciiz "\nChoi tiep? Yes[y]/No[n] (mac dinh la No): "
 	
 	tbG: .asciiz "Nhap ki tu: "
-	tbThang: .asciiz "Ban da chien thang"
-	tbThua: .asciiz "Ban da thua"
+	tbThang: .asciiz "\nBan da chien thang"
+	tbThua: .asciiz "\nBan da thua"
 	
 	fileName: .asciiz "nguoichoi.txt"
 	lenName: .word 0
@@ -528,12 +528,18 @@ _guessW:
 	sw $t6,12($sp)
 	sw $t7,16($sp)
 	
-	#lw $a0,nW
-	#la $a1,arrW
-	#la $a2,curW
-	#jal _printWord
+	li $v0,11
+	li $a0,'\n'
+	syscall
+	
+	lw $a0,nW
+	la $a1,arrW
+	la $a2,curW
+	jal _printWord
    
-
+	li $v0,11
+	li $a0,'\n'
+	syscall
 
 	
     # get first string
@@ -555,9 +561,9 @@ Special:
 	addi $t6, $t6, 1
 	sb $0, ($t6)
 	#debug
-	la $a0, curW
-	li $v0,4
-	syscall
+	#la $a0, curW
+	#li $v0,4
+	#syscall
     # get second string
     #la      $s3,str2
     #move    $t2,$s3
@@ -571,7 +577,7 @@ Special:
 
 
     la $s3, myGuessW
-	la $a0, myGuessW
+	la $a0, curW
 	li $v0,4
 	syscall
     
@@ -685,15 +691,16 @@ _guessC:
 	sw $t5,28($sp)
 	
 	#debug
-	li $v0,4
-	la $a0,curW
-	syscall
+	#li $v0,4
+	#la $a0,curW
+	#syscall
 	
 	lw $s0,nW #so luong ki tu
 _guessC.Loop:
-	li $v0,4
-	la $a0,arrW
-	syscall
+	#debug
+	#li $v0,4
+	#la $a0,arrW
+	#syscall
 	lw $a0,nW
 	la $a1,arrW
 	la $a2,curW
